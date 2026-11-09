@@ -1,16 +1,24 @@
 <?php
-session_start();
 
-$conn = new mysqli(
-    "localhost",
-    "root",
-    "",
-    "signin_register"
-);
+$host = "localhost";
+$dbname = "sign_in_db";
+$username = "root";
+$password = "";
 
-if ($conn->connect_error) {
-    die("Database connection failed: " . $conn->connect_error);
+try {
+    $conn = new PDO(
+        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
+        $username,
+        $password
+    );
+
+    $conn->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
+
+} catch (PDOException $e) {
+    die("Database connection failed.");
 }
 
-$conn->set_charset("utf8mb4");
 ?>
