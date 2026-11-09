@@ -1,9 +1,9 @@
 <?php
-require 'config.php';
+session_start();
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: index.php");
-    exit();
+    exit;
 }
 ?>
 
@@ -11,25 +11,17 @@ if (!isset($_SESSION["user_id"])) {
 <html>
 <head>
     <title>Dashboard</title>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
+<h2>Welcome!</h2>
 
-    <h1>Merry Christmas, Please Dont Call</h1>
+<p>Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!</p>
 
-    <p class="subtitle">
-        Hello, <?= htmlspecialchars($_SESSION["username"]) ?>!
-    </p>
+<p>You have successfully logged in.</p>
 
-    <p>You have successfully signed in.</p>
-
-    <a class="logout" href="logout.php">
-        Logout
-    </a>
-
-</div>
+<a href="logout.php">Logout</a>
+<link rel="stylesheet" href="style.css">
 
 </body>
 </html>
