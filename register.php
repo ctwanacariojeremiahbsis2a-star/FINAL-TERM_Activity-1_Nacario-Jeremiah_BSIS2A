@@ -1,4 +1,6 @@
 <?php
+
+
 require 'config.php';
 
 $message = "";
@@ -10,13 +12,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $confirm = $_POST["confirm"];
 
     if (empty($username) || empty($password) || empty($confirm)) {
+
         $message = "Please fill in all fields.";
 
     } elseif ($password !== $confirm) {
-        $message = "Passwords do not match.";
 
-    } elseif (strlen($password) < 8) {
-        $message = "Password must be at least 8 characters.";
+        $message = "Passwords do not match.";
 
     } else {
 
@@ -24,84 +25,73 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             "SELECT id FROM users WHERE username = ?"
         );
 
-        $check->bind_param("s", $username);
-        $check->execute();
-        $result = $check->get_result();
+        $check->execute([$username]);
 
-        if ($result->num_rows > 0) {
+        if ($check->fetch()) {
+
             $message = "Username already exists.";
 
         } else {
-
-            $hashedPassword = $password;
 
             $stmt = $conn->prepare(
                 "INSERT INTO users (username, password)
                  VALUES (?, ?)"
             );
 
-            $stmt->bind_param(
-                "ss",
-                $username,
-                $hashedPassword
-            );
+            $stmt->execute([$username, $password]);
 
-            if ($stmt->execute()) {
-                header("Location: index.php?registered=1");
-                exit();
-            } else {
-                $message = "Registration failed.";
-            }
+            $message = "Registration successful! You can now login.";
+
         }
-
-        $check->close();
     }
 }
+
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>Register</title>
-    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="container">
+<h2>Create Account</h2>
 
-    <h1>Create Account</h1>
-    <p class="subtitle">Register to get started.</p>
+<p><?php echo htmlspecialchars($message); ?></p>
 
-    <?php if (!empty($message)): ?>
-        <p class="message">
-            <?= htmlspecialchars($message) ?>
-        </p>
-    <?php endif; ?>
+<form method="POST">
 
-    <form method="POST">
+    <input type="text"
+        name="username"
+        placeholder="Enter Username"
+        required>
 
-        <label>Username</label>
-        <input type="text" name="username"
-               placeholder="Enter username" required>
+    <br><br>
 
-        <label>Password</label>
-        <input type="password" name="password"
-               placeholder="Enter password" required>
+    <input type="password"
+        name="password"
+        placeholder="Enter Password"
+        required>
 
-        <label>Confirm Password</label>
-        <input type="password" name="confirm"
-               placeholder="Confirm password" required>
+    <br><br>
 
-        <button type="submit">Register</button>
+    <input type="password"
+        name="confirm"
+        placeholder="Confirm Password"
+        required>
 
-    </form>
+    <br><br>
 
-    <p class="switch">
-        Already have an account?
-        <a href="index.php">Sign In</a>
-    </p>
+    <button type="submit">Register</button>
 
-</div>
+</form>
+
+<p>
+    Already have an account?
+    <a href="index.php">Login here</a>
+</p>
+<link rel="stylesheet" href="style.css">
 
 </body>
 </html>
