@@ -1,4 +1,7 @@
 <?php
+
+
+session_start();
 require 'config.php';
 
 $message = "";
@@ -9,86 +12,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST["password"];
 
     $stmt = $conn->prepare(
-        "SELECT id, username, password
-         FROM users WHERE username = ?"
+        "SELECT * FROM users WHERE username = ?"
     );
 
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
+    $stmt->execute([$username]);
 
-    $result = $stmt->get_result();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($result->num_rows == 1) {
+    if ($user && $password === $user["password"]) {
 
-        $user = $result->fetch_assoc();
+        session_regenerate_id(true);
 
-        if ($password === $user["password"]) {
+        $_SESSION["user_id"] = $user["id"];
+        $_SESSION["username"] = $user["username"];
 
-            session_regenerate_id(true);
-
-            $_SESSION["user_id"] = $user["id"];
-            $_SESSION["username"] = $user["username"];
-
-            header("Location: dashboard.php");
-            exit();
-
-        } else {
-            $message = "Incorrect username or password.";
-        }
+        header("Location: dashboard.php");
+        exit;
 
     } else {
-        $message = "Incorrect username or password.";
-    }
 
-    $stmt->close();
+        $message = "Invalid username or password.";
+
+    }
 }
+
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sign In</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Login</title>
 </head>
+
 <body>
 
-<div class="container">
+<h2>Sign In</h2>
 
-    <h1>Welcome Back</h1>
-    <p class="subtitle">Sign in to your account.</p>
+<p><?php echo htmlspecialchars($message); ?></p>
 
-    <?php if (isset($_GET["registered"])): ?>
-        <p class="success">
-            Account created successfully! Please sign in.
-        </p>
-    <?php endif; ?>
+<form method="POST">
 
-    <?php if (!empty($message)): ?>
-        <p class="message">
-            <?= htmlspecialchars($message) ?>
-        </p>
-    <?php endif; ?>
+    <input type="text"
+        name="username"
+        placeholder="Enter Username"
+        required>
 
-    <form method="POST">
+    <br><br>
 
-        <label>Username</label>
-        <input type="text" name="username"
-               placeholder="Enter username" required>
+    <input type="password"
+        name="password"
+        placeholder="Enter Password"
+        required>
 
-        <label>Password</label>
-        <input type="password" name="password"
-               placeholder="Enter password" required>
+    <br><br>
 
-        <button type="submit">Sign In</button>
+    <button type="submit">Login</button>
 
-    </form>
+</form>
 
-    <p class="switch">
-        Don't have an account?
-        <a href="register.php">Register</a>
-    </p>
-
-</div>
+<p>
+    Don't have an account?
+    <a href="register.php">Register here</a>
+</p>
+<link rel="stylesheet" href="style.css">
 
 </body>
 </html>
